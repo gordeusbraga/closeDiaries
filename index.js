@@ -1,8 +1,12 @@
 const axios = require("axios");
 const fs = require("fs");
+const path = require("path");
 
-// Função para extrair o ID da planilha a partir da URL
 function extrairIdDaPlanilha(url) {
+  if (typeof url !== "string") {
+    throw new Error("A URL fornecida não é uma string.");
+  }
+
   const regex = /spreadsheets\/d\/([^\/]+)/;
   const match = url.match(regex);
   if (match && match[1]) {
@@ -22,7 +26,7 @@ async function gerarPDFDaPlanilha(url) {
     // Parâmetros para configurar o PDF
     const params = new URLSearchParams({
       format: "pdf", // Formato PDF
-      size: "A4", // Tamanho do papel (ajuste conforme necessário)
+      size: "A4", // Tamanho do papel
       portrait: "false", // Paisagem
       gridlines: "false", // Sem linhas de grade
       sheetnames: "true", // Incluir nomes das abas no PDF
@@ -38,13 +42,14 @@ async function gerarPDFDaPlanilha(url) {
     });
 
     // Salva o conteúdo do PDF no disco
-    const pdfFilename = `planilha_${spreadsheetId}.pdf`; // Salva com nome baseado no ID da planilha
+    const pdfFilename = path.resolve(`planilha_${spreadsheetId}.pdf`);
     fs.writeFileSync(pdfFilename, response.data);
-    console.log(`PDF gerado com sucesso: ${pdfFilename}`);
+
+    console.log("PDF gerado com sucesso:", pdfFilename);
     return pdfFilename; // Retorna o caminho do arquivo gerado
   } catch (error) {
-    console.error("Erro ao gerar PDF da planilha:", error);
-    throw error; // Lançar erro para ser tratado na função que chama
+    console.error("Erro ao gerar PDF da planilha:", error.message);
+    throw error;
   }
 }
 
